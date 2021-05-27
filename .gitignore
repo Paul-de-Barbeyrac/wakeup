@@ -2,3 +2,6 @@
 Pipfile.lock
 dataset
 .DS_Store
+drafts
+.ipynb_checkpoints
+*.pickle
