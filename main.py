@@ -1,6 +1,6 @@
 import cv2
 
-face_cascade = cv2.CascadeClassifier('opencv/haarcascade_frontalface_alt2.xml')
+face_cascade = cv2.CascadeClassifier('opencv/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('opencv/haarcascade_eye.xml')
 
 cap = cv2.VideoCapture(0)
