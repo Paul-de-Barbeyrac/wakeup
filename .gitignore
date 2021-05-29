@@ -3,3 +3,4 @@ Pipfile.lock
 dataset
 .DS_Store
 .ipynb_checkpoints/
+dataset_cleaned/*.npy
