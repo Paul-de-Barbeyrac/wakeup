@@ -15,9 +15,14 @@ def generate_clean_dataset():
             images.append(image_resized)
             y.append(int(filepath.split("_")[4]))  # Retrieve eye state from file naming convention
 
+    output_images = []
+
+    for image in output_images:
+        output_images.append(image[:, :, 0])
+
     # Dump file for faster reuse
-    np.save('dataset_cleaned/eye_images.npy', images)
-    np.save('dataset_cleaned/eye_state.npy', y)
+    np.save('dataset_cleaned/eye_images.npy', output_images)
+    np.save('dataset_cleaned/eye_states.npy', y)
 
 
 if __name__ == '__main__':
