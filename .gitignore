@@ -5,3 +5,4 @@ dataset
 drafts
 .ipynb_checkpoints
 *.pickle
+dataset_cleaned/*.npy
