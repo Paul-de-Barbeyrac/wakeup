@@ -19,7 +19,8 @@ class VideoCamera(object):
     def get_frame(self):
         tickmark = cv2.getTickCount()
         success, image = self.video.read()
-        lbl = "Unknown"
+        lpred_output = "Unknown"
+        rpred_output = "Unknown"
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         faces = face_cascade.detectMultiScale(
@@ -53,6 +54,20 @@ class VideoCamera(object):
             for (ex, ey, ew, eh) in left_eye:
                 cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
 
+                l_eye = image[y:y + h, x:x + w]
+                l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
+                l_eye = cv2.resize(l_eye, (28, 28))
+                l_eye = l_eye / 255
+                l_eye = l_eye.reshape(28, 28, -1)
+                l_eye = np.expand_dims(l_eye, axis=0)
+                lpred = model_deep.predict_classes(l_eye)
+                if round(lpred[0][0]) == 1:
+                    lpred_output = 'Open'
+                    break
+                if round(lpred[0][0]) == 0:
+                    lpred_output = 'Closed'
+                    break
+
             for (ex, ey, ew, eh) in right_eye:
                 cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
 
@@ -64,15 +79,18 @@ class VideoCamera(object):
                 r_eye = np.expand_dims(r_eye, axis=0)
                 rpred = model_deep.predict_classes(r_eye)
                 if round(rpred[0][0]) == 1:
-                    lbl = 'Open'
+                    rpred_output = 'Open'
+                    break
                 if round(rpred[0][0]) == 0:
-                    lbl = 'Closed'
+                    rpred_output = 'Closed'
+                    break
 
 
         frame_flip = cv2.flip(image, 1)  # flip vertically
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - tickmark)
         cv2.putText(frame_flip, f"FPS: {round(fps, 1)}", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
-        cv2.putText(frame_flip, f"{lbl}", (40, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+        cv2.putText(frame_flip, f"LEFT : {lpred_output}", (40, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+        cv2.putText(frame_flip, f"RIGHT : {rpred_output}", (80, 100), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
         ret, jpeg = cv2.imencode('.jpg', frame_flip)
 
         return jpeg.tobytes()
