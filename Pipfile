@@ -5,8 +5,11 @@ name = "pypi"
 
 [packages]
 opencv-python = "*"
+django = "*"
+imutils = "*"
 scikit-image = "*"
 numpy= "*"
+
 
 [dev-packages]
 

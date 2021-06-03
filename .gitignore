@@ -2,6 +2,7 @@
 Pipfile.lock
 dataset
 .DS_Store
-.ipynb_checkpoints/
+.ipynb_checkpoints
 dataset_cleaned/*.npy
 db.sqlite3
+*/__pycache__/*
