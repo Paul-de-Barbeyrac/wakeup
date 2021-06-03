@@ -7,6 +7,9 @@ name = "pypi"
 opencv-python = "*"
 django = "*"
 imutils = "*"
+scikit-image = "*"
+numpy= "*"
+
 
 [dev-packages]
 
