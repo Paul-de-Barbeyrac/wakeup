@@ -35,6 +35,12 @@ All dependencies requirements are listed in the Pipfile and they will be install
 - rm dataset/stats_2018_01.ods
 - rm data.zip
 
+### How to launch webserver with Django
+
+- In your terminal (only needed once) : python manage.py migrate (it will create a sqlite database necessary for Django with some tables)
+- Everytime you want to launch the local webrowser : python manage.py runserver
+- Ctrl + C to stop webserver
+
 
 You are setup, let's work !
 
