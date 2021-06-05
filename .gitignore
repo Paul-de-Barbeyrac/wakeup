@@ -2,3 +2,7 @@
 Pipfile.lock
 dataset
 .DS_Store
+JupyterNB/.ipynb_checkpoints/Machine learning model-checkpoint.ipynb
+JupyterNB/Machine learning model.ipynb
+JupyterNB/face_recognition_solution.ipynb
+*.npy
