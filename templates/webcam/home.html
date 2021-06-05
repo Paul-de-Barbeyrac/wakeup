@@ -1,9 +1,15 @@
 <html>
-  <head>
-    <title>Video Live Stream</title>
-  </head>
-  <body>
-    <h1>Video Live Stream</h1>
-    <img src="{% url 'video_feed' %}">
-  </body>
+<head>
+    <title>Home</title>
+</head>
+<body>
+<h1>Home</h1>
+<ul>
+    <li><a href={% url 'image' %}>Image</a>
+    </li>
+    <p></p>
+    <li><a href={% url 'video' %}>Video</a>
+    </li>
+</ul>
+</body>
 </html>

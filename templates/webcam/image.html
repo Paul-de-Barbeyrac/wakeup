@@ -1,0 +1,20 @@
+<html>
+<head>
+    <title>Image module</title>
+</head>
+<body>
+<h1>Image module</h1>
+<p>toto</p>
+<form action="{% url 'image' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>
+        <input id="file" type="file" class="" name="file">
+    </p>
+    <input type="submit" value="Submit"/>
+</form>
+<p>Raw image</p>
+<img id="raw_image" style="max-width: 100%; width: auto;" alt="" src="{{ raw_image }}"/>
+<p>Processed image</p>
+<img id="processed_image" style="max-width: 100%; width: auto;" alt="" src="{{ processed_image }}"/>
+</body>
+</html>
