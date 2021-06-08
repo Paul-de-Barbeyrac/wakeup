@@ -1,16 +1,19 @@
 import base64
-from PIL import Image
-from base64 import b64encode
-import cv2
-import numpy
-import numpy as np
 import io
+
+import cv2
+import numpy as np
 from PIL import Image
-from django.shortcuts import render
 from django.http.response import StreamingHttpResponse
+from django.shortcuts import render
+from tensorflow import keras
+
 from webcam.camera import VideoCamera
 
 face_cascade = cv2.CascadeClassifier('opencv/haarcascade_frontalface_default.xml')
+left_eye_cascade = cv2.CascadeClassifier('opencv/haarcascade_lefteye_2splits.xml')
+right_eye_cascade = cv2.CascadeClassifier('opencv/haarcascade_righteye_2splits.xml')
+model_deep = keras.models.load_model("model/model.h5")
 
 
 def readb64(base64_string):
@@ -38,7 +41,10 @@ def image(request):
         raw_image = f"data:image/jpeg;base64,{image_ascii}"
 
         cvimg = readb64(image_ascii)
+        lpred_output = "Unknown"
+        rpred_output = "Unknown"
         gray = cv2.cvtColor(cvimg, cv2.COLOR_BGR2GRAY)
+
         faces = face_cascade.detectMultiScale(
             gray,
             scaleFactor=1.05,
@@ -48,9 +54,61 @@ def image(request):
         )
 
         for (x, y, w, h) in faces:
-            cv2.rectangle(cvimg, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
-        cv2.putText(cvimg, f"TOTO EST LA", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+            cv2.rectangle(cvimg, (x, y), (x + w, y + h), (255, 0, 0), 3)
+            roi_gray = gray[y:y + h, x:x + w]
+            roi_color = cvimg[y:y + h, x:x + w]
+
+            left_eye = left_eye_cascade.detectMultiScale(
+                roi_gray,
+                scaleFactor=1.4,
+                minNeighbors=10,
+                minSize=(60, 60)
+            )
+
+            right_eye = right_eye_cascade.detectMultiScale(
+                roi_gray,
+                scaleFactor=1.4,
+                minNeighbors=10,
+                minSize=(60, 60)
+            )
+
+            for (ex, ey, ew, eh) in left_eye:
+                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
+
+                l_eye = cvimg[y:y + h, x:x + w]
+                l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
+                l_eye = cv2.resize(l_eye, (28, 28))
+                l_eye = l_eye / 255
+                l_eye = l_eye.reshape(28, 28, -1)
+                l_eye = np.expand_dims(l_eye, axis=0)
+                lpred = model_deep.predict_classes(l_eye)
+                if round(lpred[0][0]) == 1:
+                    lpred_output = 'Open'
+                    break
+                if round(lpred[0][0]) == 0:
+                    lpred_output = 'Closed'
+                    break
+
+            for (ex, ey, ew, eh) in right_eye:
+                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+
+                r_eye = cvimg[y:y + h, x:x + w]
+                r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
+                r_eye = cv2.resize(r_eye, (28, 28))
+                r_eye = r_eye / 255
+                r_eye = r_eye.reshape(28, 28, -1)
+                r_eye = np.expand_dims(r_eye, axis=0)
+                rpred = model_deep.predict_classes(r_eye)
+                if round(rpred[0][0]) == 1:
+                    rpred_output = 'Open'
+                    break
+                if round(rpred[0][0]) == 0:
+                    rpred_output = 'Closed'
+                    break
+
+        cv2.putText(cvimg, f"Model predict LEFT eye : {lpred_output}", (0, 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1)
+        cv2.putText(cvimg, f"Model predict RIGHT eye : {rpred_output}", (0, 70), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1)
 
         ret, frame_buff = cv2.imencode('.jpg', cvimg)
         image_base64_cv = base64.b64encode(frame_buff)
