@@ -40,43 +40,49 @@ def image(request):
         image_ascii = image_base64.decode('ascii')
         raw_image = f"data:image/jpeg;base64,{image_ascii}"
 
-        cvimg = readb64(image_ascii)
         lpred_output = "Unknown"
         rpred_output = "Unknown"
-        gray = cv2.cvtColor(cvimg, cv2.COLOR_BGR2GRAY)
+
+        raw_img = readb64(image_ascii)
+        raw_img_gray = cv2.cvtColor(raw_img, cv2.COLOR_BGR2GRAY)
+        plot_img = raw_img
 
         faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.05,
+            raw_img_gray,
+            scaleFactor=1.3,
             # the higher the faster the detection but can be missing detection. Approx range 1.05 - 1.4
-            minNeighbors=6,  # how many neighbors each candidate rectangle should have to retain it. Approx range 3 - 6
-            minSize=(200, 200)  # objects smaller than that dimensions in pixels are ignored. Range depends on objects
+            minNeighbors=3,  # how many neighbors each candidate rectangle should have to retain it. Approx range 3 - 6
+            minSize=(30, 30)  # objects smaller than that dimensions in pixels are ignored. Range depends on objects
         )
 
         for (x, y, w, h) in faces:
+            cv2.imwrite('raw_image.jpg', raw_img)
+            cv2.rectangle(plot_img, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
-            cv2.rectangle(cvimg, (x, y), (x + w, y + h), (255, 0, 0), 3)
-            roi_gray = gray[y:y + h, x:x + w]
-            roi_color = cvimg[y:y + h, x:x + w]
+            face_img = raw_img[y:y + h, x:x + w]
+            face_img_gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+
+            cv2.imwrite(str(x) + str(y) + str(w) + str(h) + '_faces.jpg', raw_img)
 
             left_eye = left_eye_cascade.detectMultiScale(
-                roi_gray,
+                face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=10,
-                minSize=(60, 60)
+                minNeighbors=5,
+                minSize=(30, 30)
             )
 
             right_eye = right_eye_cascade.detectMultiScale(
-                roi_gray,
+                face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=10,
-                minSize=(60, 60)
+                minNeighbors=5,
+                minSize=(30, 30)
             )
 
-            for (ex, ey, ew, eh) in left_eye:
-                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
+            for (lx, ly, lw, lh) in left_eye:
+                cv2.rectangle(plot_img, (x + lx, y + ly), (x + lx + lw, y + ly + lh), (0, 0, 255), 3)
 
-                l_eye = cvimg[y:y + h, x:x + w]
+                l_eye = face_img[ly:ly + lh, lx:lx + lw]
+                cv2.imwrite('left_eye.jpg', l_eye)
                 l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
                 l_eye = cv2.resize(l_eye, (28, 28))
                 l_eye = l_eye / 255
@@ -90,10 +96,11 @@ def image(request):
                     lpred_output = 'Closed'
                     break
 
-            for (ex, ey, ew, eh) in right_eye:
-                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+            for (rx, ry, rw, rh) in right_eye:
+                cv2.rectangle(plot_img, (x + rx, y + ry), (x + rx + rw, y + ry + rh), (0, 255, 0), 3)
 
-                r_eye = cvimg[y:y + h, x:x + w]
+                r_eye = face_img[ry:ry + rh, rx:rx + rw]
+                cv2.imwrite('right_eye.jpg', r_eye)
                 r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
                 r_eye = cv2.resize(r_eye, (28, 28))
                 r_eye = r_eye / 255
@@ -107,14 +114,17 @@ def image(request):
                     rpred_output = 'Closed'
                     break
 
-        cv2.putText(cvimg, f"Model predict LEFT eye : {lpred_output}", (0, 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1)
-        cv2.putText(cvimg, f"Model predict RIGHT eye : {rpred_output}", (0, 70), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1)
+        cv2.putText(plot_img, f"Model predict LEFT eye : {lpred_output}", (0, 40), cv2.FONT_HERSHEY_PLAIN, 1,
+                    (0, 0, 255),
+                    1)
+        cv2.putText(plot_img, f"Model predict RIGHT eye : {rpred_output}", (0, 80), cv2.FONT_HERSHEY_PLAIN, 1,
+                    (0, 255, 0),
+                    1)
 
-        ret, frame_buff = cv2.imencode('.jpg', cvimg)
+        ret, frame_buff = cv2.imencode('.jpg', plot_img)
         image_base64_cv = base64.b64encode(frame_buff)
         image_ascii_cv = image_base64_cv.decode('ascii')
-        raw_image_cv = f"data:image/jpeg;base64,{image_ascii_cv}"
-        processed_image = raw_image_cv
+        processed_image = f"data:image/jpeg;base64,{image_ascii_cv}"
 
     else:
         raw_image = None
