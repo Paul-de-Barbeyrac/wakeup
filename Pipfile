@@ -10,7 +10,7 @@ imutils = "*"
 scikit-image = "*"
 numpy= "*"
 tensorflow="*"
-
+dlib = "*"
 
 [dev-packages]
 
