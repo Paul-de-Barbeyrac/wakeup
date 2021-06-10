@@ -69,10 +69,11 @@ class VideoCamera(object):
                 l_eye = l_eye.reshape(28, 28, -1)
                 l_eye = np.expand_dims(l_eye, axis=0)
                 lpred = model_deep.predict_classes(l_eye)
-                if round(lpred[0][0]) == 1:
+                lpred_proba= lpred[0][0]
+                if round(lpred_proba) == 1:
                     lpred_output = 'OPEN'
                     break
-                if round(lpred[0][0]) == 0:
+                if round(lpred_proba) == 0:
                     lpred_output = 'CLOSED'
                     break
 
@@ -87,10 +88,11 @@ class VideoCamera(object):
                 r_eye = r_eye.reshape(28, 28, -1)
                 r_eye = np.expand_dims(r_eye, axis=0)
                 rpred = model_deep.predict_classes(r_eye)
-                if round(rpred[0][0]) == 1:
+                rpred_proba = rpred[0][0]
+                if round(rpred_proba) == 1:
                     rpred_output = 'OPEN'
                     break
-                if round(rpred[0][0]) == 0:
+                if round(rpred_proba) == 0:
                     rpred_output = 'CLOSED'
                     break
 
