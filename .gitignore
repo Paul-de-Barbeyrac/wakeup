@@ -6,4 +6,4 @@ dataset
 dataset_cleaned/*.npy
 db.sqlite3
 */__pycache__/*
-*.dat
+shape_predictor_68_face_landmarks.dat
