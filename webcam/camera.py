@@ -19,42 +19,50 @@ class VideoCamera(object):
     def get_frame(self):
         tickmark = cv2.getTickCount()
         success, image = self.video.read()
+
         lpred_output = "Unknown"
         rpred_output = "Unknown"
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        raw_img = image
+        raw_img_gray = cv2.cvtColor(raw_img, cv2.COLOR_BGR2GRAY)
+        plot_img = raw_img
 
         faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.05,
+            raw_img_gray,
+            scaleFactor=1.4,
             # the higher the faster the detection but can be missing detection. Approx range 1.05 - 1.4
-            minNeighbors=6,  # how many neighbors each candidate rectangle should have to retain it. Approx range 3 - 6
+            minNeighbors=1,  # how many neighbors each candidate rectangle should have to retain it. Approx range 3 - 6
             minSize=(200, 200)  # objects smaller than that dimensions in pixels are ignored. Range depends on objects
         )
 
         for (x, y, w, h) in faces:
+            # cv2.imwrite('raw_image.jpg', raw_img)
+            cv2.rectangle(plot_img, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
-            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 3)
-            roi_gray = gray[y:y + h, x:x + w]
-            roi_color = image[y:y + h, x:x + w]
+            face_img = raw_img[y:y + h, x:x + w]
+            face_img_gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+
+            # cv2.imwrite(str(x) + str(y) + str(w) + str(h) + '_faces.jpg', raw_img)
 
             left_eye = left_eye_cascade.detectMultiScale(
-                roi_gray,
+                face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=10,
-                minSize=(60, 60)
+                minNeighbors=1,
+                minSize=(50, 50)
             )
 
             right_eye = right_eye_cascade.detectMultiScale(
-                roi_gray,
+                face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=10,
-                minSize=(60, 60)
+                minNeighbors=1,
+                minSize=(50, 50)
             )
 
-            for (ex, ey, ew, eh) in left_eye:
-                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
+            for (lx, ly, lw, lh) in left_eye:
+                cv2.rectangle(plot_img, (x + lx, y + ly), (x + lx + lw, y + ly + lh), (0, 0, 255), 3)
 
-                l_eye = image[y:y + h, x:x + w]
+                l_eye = face_img[ly:ly + lh, lx:lx + lw]
+                # cv2.imwrite('left_eye.jpg', l_eye)
                 l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
                 l_eye = cv2.resize(l_eye, (28, 28))
                 l_eye = l_eye / 255
@@ -62,16 +70,17 @@ class VideoCamera(object):
                 l_eye = np.expand_dims(l_eye, axis=0)
                 lpred = model_deep.predict_classes(l_eye)
                 if round(lpred[0][0]) == 1:
-                    lpred_output = 'Open'
+                    lpred_output = 'OPEN'
                     break
                 if round(lpred[0][0]) == 0:
-                    lpred_output = 'Closed'
+                    lpred_output = 'CLOSED'
                     break
 
-            for (ex, ey, ew, eh) in right_eye:
-                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+            for (rx, ry, rw, rh) in right_eye:
+                cv2.rectangle(plot_img, (x + rx, y + ry), (x + rx + rw, y + ry + rh), (0, 255, 0), 3)
 
-                r_eye = image[y:y + h, x:x + w]
+                r_eye = face_img[ry:ry + rh, rx:rx + rw]
+                # cv2.imwrite('right_eye.jpg', r_eye)
                 r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
                 r_eye = cv2.resize(r_eye, (28, 28))
                 r_eye = r_eye / 255
@@ -79,18 +88,21 @@ class VideoCamera(object):
                 r_eye = np.expand_dims(r_eye, axis=0)
                 rpred = model_deep.predict_classes(r_eye)
                 if round(rpred[0][0]) == 1:
-                    rpred_output = 'Open'
+                    rpred_output = 'OPEN'
                     break
                 if round(rpred[0][0]) == 0:
-                    rpred_output = 'Closed'
+                    rpred_output = 'CLOSED'
                     break
 
-
-        frame_flip = cv2.flip(image, 1)  # flip vertically
+        frame_flip = cv2.flip(plot_img, 1)  # flip vertically
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - tickmark)
-        cv2.putText(frame_flip, f"FPS: {round(fps, 1)}", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
-        cv2.putText(frame_flip, f"LEFT : {lpred_output}", (40, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
-        cv2.putText(frame_flip, f"RIGHT : {rpred_output}", (80, 100), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+        cv2.putText(frame_flip, f"FPS: {round(fps, 1)}", (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv2.putText(frame_flip, f"LEFT : {lpred_output}", (0, 60), cv2.FONT_HERSHEY_PLAIN, 2,
+                    (0, 0, 255),
+                    2)
+        cv2.putText(frame_flip, f"RIGHT : {rpred_output}", (0, 90), cv2.FONT_HERSHEY_PLAIN, 2,
+                    (0, 255, 0),
+                    2)
         ret, jpeg = cv2.imencode('.jpg', frame_flip)
 
         return jpeg.tobytes()

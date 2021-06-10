@@ -56,70 +56,88 @@ def image(request):
         )
 
         for (x, y, w, h) in faces:
-            cv2.imwrite('raw_image.jpg', raw_img)
-            cv2.rectangle(plot_img, (x, y), (x + w, y + h), (255, 0, 0), 3)
-
+            # cv2.imwrite('raw_image.jpg', raw_img)
             face_img = raw_img[y:y + h, x:x + w]
             face_img_gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
-
-            cv2.imwrite(str(x) + str(y) + str(w) + str(h) + '_faces.jpg', raw_img)
+            # cv2.imwrite(str(x) + str(y) + str(w) + str(h) + '_faces.jpg', raw_img)
 
             left_eye = left_eye_cascade.detectMultiScale(
                 face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=5,
-                minSize=(30, 30)
+                minNeighbors=6,
+                minSize=(45, 45)
             )
 
             right_eye = right_eye_cascade.detectMultiScale(
                 face_img_gray,
                 scaleFactor=1.4,
-                minNeighbors=5,
-                minSize=(30, 30)
+                minNeighbors=6,
+                minSize=(45, 45)
             )
 
-            for (lx, ly, lw, lh) in left_eye:
-                cv2.rectangle(plot_img, (x + lx, y + ly), (x + lx + lw, y + ly + lh), (0, 0, 255), 3)
+            print(left_eye)
+            print(type(left_eye))
+            print(np.round(np.mean(left_eye, axis=0)).astype(int))
 
-                l_eye = face_img[ly:ly + lh, lx:lx + lw]
-                cv2.imwrite('left_eye.jpg', l_eye)
-                l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
-                l_eye = cv2.resize(l_eye, (28, 28))
-                l_eye = l_eye / 255
-                l_eye = l_eye.reshape(28, 28, -1)
-                l_eye = np.expand_dims(l_eye, axis=0)
-                lpred = model_deep.predict_classes(l_eye)
-                if round(lpred[0][0]) == 1:
-                    lpred_output = 'Open'
-                    break
-                if round(lpred[0][0]) == 0:
-                    lpred_output = 'Closed'
-                    break
+            (lx, ly, lw, lh) = np.round(np.mean(left_eye, axis=0)).astype(int)
+            l_eye = face_img[ly:ly + lh, lx:lx + lw]
+            cv2.imwrite('left_eye.jpg', l_eye)
+            l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
+            l_eye = cv2.resize(l_eye, (28, 28))
+            l_eye = l_eye / 255
+            l_eye = l_eye.reshape(28, 28, -1)
+            l_eye = np.expand_dims(l_eye, axis=0)
+            lpred = model_deep.predict_classes(l_eye)
+            lpred_proba = lpred[0][0]
+            if round(lpred_proba) == 1:
+                text_to_display = f"Eye opening - {round(lpred_proba, 2)}"
+                coordinates = (x + lx, y + ly)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.4
+                color_open = (0, 255, 0)
+                thickness = 3
+                cv2.rectangle(plot_img, (x + lx, y + ly), (x + lx + lw, y + ly + lh), color_open, thickness)
+                cv2.putText(plot_img, text_to_display, coordinates, font, font_scale, color_open, thickness)
+            elif round(lpred_proba) == 0:
+                text_to_display = f"Eye opening - {round(lpred_proba, 2)}"
+                coordinates = (x + lx, y + ly)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.4
+                color_closed = (0, 0, 255)
+                thickness = 3
+                cv2.rectangle(plot_img, (x + lx, y + ly), (x + lx + lw, y + ly + lh), color_closed, thickness)
+                cv2.putText(plot_img, text_to_display, coordinates, font, font_scale, color_closed, thickness)
 
-            for (rx, ry, rw, rh) in right_eye:
-                cv2.rectangle(plot_img, (x + rx, y + ry), (x + rx + rw, y + ry + rh), (0, 255, 0), 3)
+            # for (rx, ry, rw, rh) in right_eye:
+            #     r_eye = face_img[ry:ry + rh, rx:rx + rw]
+            #     # cv2.imwrite('right_eye.jpg', r_eye)
+            #     r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
+            #     r_eye = cv2.resize(r_eye, (28, 28))
+            #     r_eye = r_eye / 255
+            #     r_eye = r_eye.reshape(28, 28, -1)
+            #     r_eye = np.expand_dims(r_eye, axis=0)
+            #     rpred = model_deep.predict_classes(r_eye)
+            #     rpred_proba = rpred[0][0]
+            #     if round(rpred_proba) == 1:
+            #         text_to_display = f"Eye opening - {round(rpred_proba, 2)}"
+            #         coordinates = (x + lx, y + ly)
+            #         font = cv2.FONT_HERSHEY_SIMPLEX
+            #         font_scale = 1
+            #         color = (255, 0, 0)
+            #         thickness = 2
+            #         cv2.putText(plot_img, text_to_display, coordinates, font, font_scale, color, thickness)
+            #         break
+            #     if round(rpred_proba) == 0:
+            #         text_to_display = f"Eye opening - {round(rpred_proba, 2)}"
+            #         coordinates = (x + lx, y + ly)
+            #         font = cv2.FONT_HERSHEY_SIMPLEX
+            #         font_scale = 1
+            #         color = (0, 0, 255)
+            #         thickness = 2
+            #         cv2.putText(plot_img, text_to_display, coordinates, font, font_scale, color, thickness)
+            #         break
 
-                r_eye = face_img[ry:ry + rh, rx:rx + rw]
-                cv2.imwrite('right_eye.jpg', r_eye)
-                r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
-                r_eye = cv2.resize(r_eye, (28, 28))
-                r_eye = r_eye / 255
-                r_eye = r_eye.reshape(28, 28, -1)
-                r_eye = np.expand_dims(r_eye, axis=0)
-                rpred = model_deep.predict_classes(r_eye)
-                if round(rpred[0][0]) == 1:
-                    rpred_output = 'Open'
-                    break
-                if round(rpred[0][0]) == 0:
-                    rpred_output = 'Closed'
-                    break
-
-        cv2.putText(plot_img, f"Model predict LEFT eye : {lpred_output}", (0, 40), cv2.FONT_HERSHEY_PLAIN, 1,
-                    (0, 0, 255),
-                    1)
-        cv2.putText(plot_img, f"Model predict RIGHT eye : {rpred_output}", (0, 80), cv2.FONT_HERSHEY_PLAIN, 1,
-                    (0, 255, 0),
-                    1)
+            cv2.rectangle(plot_img, (x, y), (x + w, y + h), (255, 0, 0), 3)
 
         ret, frame_buff = cv2.imencode('.jpg', plot_img)
         image_base64_cv = base64.b64encode(frame_buff)
