@@ -1,5 +1,6 @@
 import base64
 import io
+import time
 
 import cv2
 import dlib
@@ -32,14 +33,12 @@ def video(request):
     return render(request, 'webcam/video.html')
 
 
-
-
-
 def image(request):
     raw_image = None
     processed_image = None
     image_opencv = None
     if request.method == 'POST':
+
         image = request.FILES['file'].read()
         image_base64 = base64.b64encode(image)
         image_ascii = image_base64.decode('ascii')
@@ -55,7 +54,10 @@ def image(request):
         detections = detector(img, 1)
 
         # Find landmarks
+        start = time.time()
         sp = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        stop = time.time()
+        # print(stop - start)
         faces = dlib.full_object_detections()
         for det in detections:
             faces.append(sp(img, det))
@@ -98,11 +100,11 @@ def image(request):
             pred = model_deep.predict(extract_eye_left)
             proba = pred[0][0]
             color = (0, 255 * proba, 255 * (1 - proba))
-            print(round(proba, 4))
+            # print(round(proba, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
 
             text_to_display = f"{round(float(proba), 2)}"
-            coordinates = (center_x-width,center_y-width-5)
+            coordinates = (center_x - width, center_y - width - 5)
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.75
             thickness = 1
@@ -128,16 +130,15 @@ def image(request):
             pred = model_deep.predict(extract_eye_right)
             proba = pred[0][0]
             color = (0, 255 * proba, 255 * (1 - proba))
-            print(round(proba, 4))
+            # print(round(proba, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
 
-            text_to_display =f"{round(float(proba), 2)}"
-            coordinates = (center_x-width,center_y-width-5)
+            text_to_display = f"{round(float(proba), 2)}"
+            coordinates = (center_x - width, center_y - width - 5)
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.45
             thickness = 1
             cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
-
 
         for i in bb:
             cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 5)  # Bounding box
@@ -147,9 +148,12 @@ def image(request):
         image_ascii_cv = image_base64_cv.decode('ascii')
         processed_image = f"data:image/jpeg;base64,{image_ascii_cv}"
 
+
+
     else:
         raw_image = None
         processed_image = None
+
 
     return render(request, 'webcam/image.html',
                   {'raw_image': raw_image, 'processed_image': processed_image})
@@ -157,11 +161,15 @@ def image(request):
 
 def gen(camera):
     while True:
+        # start=time.time()
         frame = camera.get_frame()
+        # print(time.time()-start)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 
 def video_feed(request):
-    return StreamingHttpResponse(gen(VideoCamera()),
+    sp = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+    detector= dlib.get_frontal_face_detector()
+    return StreamingHttpResponse(gen(VideoCamera(sp,detector)),
                                  content_type='multipart/x-mixed-replace; boundary=frame')
