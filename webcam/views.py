@@ -73,23 +73,93 @@ def image(request):
 
         # Display
         imgd = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # Convert back to OpenCV
-        for i in bb:
-            cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 5)  # Bounding box
 
-        padding = 60
         for eye in right_eyes:
-            cv2.rectangle(imgd, (max(eye, key=lambda x: x[0])[0] - padding, max(eye, key=lambda x: x[1])[1] - padding),
-                          (min(eye, key=lambda x: x[0])[0] + padding, min(eye, key=lambda x: x[1])[1] + padding),
-                          (0, 0, 255), 3)
+            height = max(eye, key=lambda x: x[1])[1] - min(eye, key=lambda x: x[1])[1]
+            width = max(eye, key=lambda x: x[0])[0] - min(eye, key=lambda x: x[0])[0]
+            center_x = round((min(eye, key=lambda x: x[0])[0] + max(eye, key=lambda x: x[0])[0]) / 2)
+            center_y = round((min(eye, key=lambda x: x[1])[1] + max(eye, key=lambda x: x[1])[1]) / 2)
+
+            # cv2.circle(imgd, (center_x, center_y), 2, (0, 255, 0), -1)
+
+            padding_x = 1.4 * width
+            padding_y = 2.3 * height
+            x1 = (
+                round(max(eye, key=lambda x: x[0])[0] - padding_x), round(max(eye, key=lambda x: x[1])[1] - padding_y))
+            x2 = (round(min(eye, key=lambda x: x[0])[0] + padding_x),
+                  round(min(eye, key=lambda x: x[1])[1] + padding_y))
+
+            print(x1, x2)
+
+            point_left = round(max(eye, key=lambda x: x[0])[0] - padding_x)
+
+            # l_eye = imgd[x1[1]:x1[1] + (x2[1] - x1[1]), x1[0]:x1[0] + (x2[0] - x1[0])]
+            l_eye = imgd[center_y - width:center_y+width, center_x - width:center_x + width]
+
+            cv2.imwrite('left_eye.jpg', l_eye)
+
+            l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
+            l_eye = cv2.resize(l_eye, (28, 28))
+            l_eye = l_eye / 255
+            l_eye = l_eye.reshape(28, 28, -1)
+            l_eye = np.expand_dims(l_eye, axis=0)
+            lpred = model_deep.predict_classes(l_eye)
+            lpred_proba = lpred[0][0]
+            if round(lpred_proba) == 1:
+                lpred_output = 'OPEN'
+                color = (0, 255, 0)
+                print(lpred_output)
+            elif round(lpred_proba) == 0:
+                lpred_output = 'CLOSED'
+                color = (0, 0, 255)
+                print(lpred_output)
+            cv2.rectangle(imgd, x1, x2, color, 3)
+
+            # text_to_display = f"Eye opening - {round(lpred_proba, 2)}"
+            # coordinates = (x1[0], x1[1])
+            # font = cv2.FONT_HERSHEY_SIMPLEX
+            # font_scale = 0.4
+            # color = (0, 0, 255)
+            # thickness = 2
+            # cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
+
             # for point in eye:
             #     cv2.circle(imgd, (point[0], point[1]), 2, (0, 255, 0), -1)
 
-        for eye in left_eyes:
-            cv2.rectangle(imgd, (max(eye, key=lambda x: x[0])[0] - padding, max(eye, key=lambda x: x[1])[1] - padding),
-                          (min(eye, key=lambda x: x[0])[0] + padding, min(eye, key=lambda x: x[1])[1] + padding),
-                          (0, 0, 255), 3)
-            # for point in eye:
-            #     cv2.circle(imgd, (point[0], point[1]), 2, (0, 0, 255), -1)
+        # for eye in left_eyes:
+        #     height = max(eye, key=lambda x: x[1])[1] - min(eye, key=lambda x: x[1])[1]
+        #     width = max(eye, key=lambda x: x[0])[0] - min(eye, key=lambda x: x[0])[0]
+        #     padding_x = 1.4 * width
+        #     padding_y = 2.3 * height
+        #     x1 = (
+        #         round(max(eye, key=lambda x: x[0])[0] - padding_x), round(max(eye, key=lambda x: x[1])[1] - padding_y))
+        #     x2 = (round(min(eye, key=lambda x: x[0])[0] + padding_x),
+        #           round(min(eye, key=lambda x: x[1])[1] + padding_y))
+        #
+        #     # l_eye = imgd[x1[1]:x1[1] + (x2[1] - x1[1]), x1[0]:x1[0] + (x2[0] - x1[0])]
+        #     l_eye = imgd[round(x1[1]):round(x1[1] + 2 * width), x1[0]:round(x1[0] + 2 * width)]
+        #
+        #     cv2.imwrite('right_eye.jpg', l_eye)
+        #
+        #     l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
+        #     l_eye = cv2.resize(l_eye, (28, 28))
+        #     l_eye = l_eye / 255
+        #     l_eye = l_eye.reshape(28, 28, -1)
+        #     l_eye = np.expand_dims(l_eye, axis=0)
+        #     lpred = model_deep.predict_classes(l_eye)
+        #     lpred_proba = lpred[0][0]
+        #     if round(lpred_proba) == 1:
+        #         lpred_output = 'OPEN'
+        #         color = (0, 255, 0)
+        #         print(lpred_output)
+        #     elif round(lpred_proba) == 0:
+        #         lpred_output = 'CLOSED'
+        #         color = (0, 0, 255)
+        #         print(lpred_output)
+        #     cv2.rectangle(imgd, x1, x2, color, 3)
+
+        for i in bb:
+            cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 5)  # Bounding box
 
         ret, frame_buff = cv2.imencode('.jpg', imgd)
         image_base64_cv = base64.b64encode(frame_buff)
