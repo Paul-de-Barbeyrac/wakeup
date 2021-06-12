@@ -35,14 +35,13 @@ class VideoCamera(object):
         # print(image.shape)
         image = rescale_frame(image, percent=30)
         # print(image.shape)
-        print("step 1:" + str(time.time() - start1))
+        # print("step 1:" + str(time.time() - start1))
         # Convert to dlib
         start2 = time.time()
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # print("step 2:" + str(time.time() - start2))
         # dlib face detection
 
-        #OPTIMISER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         start3 = time.time()
         detector = self.detector
         # print("step 3:" + str(time.time() - start3))
@@ -107,13 +106,13 @@ class VideoCamera(object):
             proba = pred[0][0]
             color = (0, 255 * proba, 255 * (1 - proba))
             # print(round(proba, 4))
-            cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
+            cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
 
             text_to_display = f"{round(float(proba), 2)}"
             coordinates = (center_x - width, center_y - width - 5)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 0.75
-            thickness = 1
+            font_scale = 0.25
+            thickness = 0
             cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
         for eye in right_eyes:
@@ -137,23 +136,24 @@ class VideoCamera(object):
             proba = pred[0][0]
             color = (0, 255 * proba, 255 * (1 - proba))
             # print(round(proba, 4))
-            cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
+            cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
 
             text_to_display = f"{round(float(proba), 2)}"
             coordinates = (center_x - width, center_y - width - 5)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 0.45
-            thickness = 1
+            font_scale = 0.25
+            thickness = 0
             cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
         for i in bb:
-            cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 5)  # Bounding box
+            cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 0)  # Bounding box
 
-        frame_flip = cv2.flip(imgd, 1)  # flip vertically
+        # frame_flip = cv2.flip(imgd, 1)  # flip vertically
+        frame_flip = imgd
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - tickmark)
-        cv2.putText(frame_flip, f"{round(fps, 1)}", (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv2.putText(frame_flip, f"FPS: {round(fps, 1)}", (0, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 0)
 
         ret, jpeg = cv2.imencode('.jpg', frame_flip)
-        print("step 8:" + str(time.time() - start8))
-        print("---------------------------")
+        # print("step 8:" + str(time.time() - start8))
+        # print("---------------------------")
         return jpeg.tobytes()
