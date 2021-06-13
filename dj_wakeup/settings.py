@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
-
+import configparser
 import os
+
+config = configparser.ConfigParser()
+config.read("./config.ini")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +23,12 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&6h$7ylv303fp+_4)&ad0^l@lrdpf@k)t2jxkf0r+jcl9!i&&r'
+SECRET_KEY = config.get("GENERAL", 'SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.get("GENERAL", 'DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [config.get("GENERAL", 'ALLOWED_HOSTS'),'127.0.0.1']
 
 # Application definition
 
@@ -71,12 +74,24 @@ WSGI_APPLICATION = 'dj_wakeup.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': config.get("POSTGRES", 'NAME'),
+            'USER': config.get("POSTGRES", 'USER'),
+            'PASSWORD': config.get("POSTGRES", 'PASSWORD'),
+            'HOST': config.get("POSTGRES", 'HOST'),
+            'PORT': '',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -113,3 +128,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
