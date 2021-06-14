@@ -11,6 +11,7 @@ from tensorflow import keras
 
 model_deep = keras.models.load_model("model/model.h5")
 
+
 def rescale_frame(frame, percent=75):
     width = int(frame.shape[1] * percent / 100)
     height = int(frame.shape[0] * percent / 100)
@@ -19,7 +20,7 @@ def rescale_frame(frame, percent=75):
 
 
 class VideoCamera(object):
-    def __init__(self, sp,detector,sleeping_counter=0):
+    def __init__(self, sp, detector, sleeping_counter=0):
         self.video = cv2.VideoCapture(0)
         self.sp = sp
         self.detector = detector
@@ -33,7 +34,7 @@ class VideoCamera(object):
         tickmark = cv2.getTickCount()
         success, image = self.video.read()
         # print(image.shape)
-        image = rescale_frame(image, percent=30)
+        image = rescale_frame(image, percent=50)
         # print(image.shape)
         # print("step 1:" + str(time.time() - start1))
         # Convert to dlib
@@ -65,7 +66,6 @@ class VideoCamera(object):
             faces.append(sp(img, det))
         # print("step 7:" + str(time.time() - start7))
 
-
         start8 = time.time()
         # Bounding box and eyes
         bb = [i.rect for i in faces]
@@ -81,8 +81,8 @@ class VideoCamera(object):
         # Display
         imgd = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # Convert back to OpenCV
 
-        proba_left=1
-        proba_right=1
+        proba_left = 0
+        proba_right = 0
 
         for eye in left_eyes:
             width = max(eye, key=lambda x: x[0])[0] - min(eye, key=lambda x: x[0])[0]
@@ -95,10 +95,6 @@ class VideoCamera(object):
             extract_eye_left = cv2.cvtColor(extract_eye_left, cv2.COLOR_BGR2GRAY)
             extract_eye_left = cv2.resize(extract_eye_left, (28, 28))
 
-            # Ne marche pas mais bonne idee. Faudrait reentrainer le model
-            # p2, p98 = np.percentile(extract_eye_left, (10, 90))
-            # extract_eye_left = exposure.rescale_intensity(extract_eye_left, in_range=(p2, p98))
-
             # Save image
             # cv2.imwrite(f"left2-eye-{center_x}-{center_y}.jpg", extract_eye_left)
 
@@ -107,7 +103,10 @@ class VideoCamera(object):
             extract_eye_left = np.expand_dims(extract_eye_left, axis=0)
             pred = model_deep.predict(extract_eye_left)
             proba_left = pred[0][0]
-            color = (0, 255 * proba_left, 255 * (1 - proba_left))
+            if proba_left > 0.9:
+                color = (0, 255, 0)
+            else:
+                color = (0, 0, 255)
             # print(round(proba, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
 
@@ -137,7 +136,10 @@ class VideoCamera(object):
             extract_eye_right = np.expand_dims(extract_eye_right, axis=0)
             pred = model_deep.predict(extract_eye_right)
             proba_right = pred[0][0]
-            color = (0, 255 * proba_right, 255 * (1 - proba_right))
+            if proba_right > 0.9:
+                color = (0, 255, 0)
+            else:
+                color = (0, 0, 255)
             # print(round(proba_right, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
 
@@ -148,11 +150,11 @@ class VideoCamera(object):
             thickness = 0
             cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
-        if round((proba_left+proba_right)/2)==1:
+        if round((proba_left + proba_right) / 2) == 1:
             if self.sleeping_counter > 0:
                 self.sleeping_counter = self.sleeping_counter - 1
-        elif round((proba_left+proba_right)/2)==0:
-            self.sleeping_counter = self.sleeping_counter + 1
+        elif round((proba_left + proba_right) / 2) == 0:
+            self.sleeping_counter = self.sleeping_counter +3
 
         for i in bb:
             cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 0)  # Bounding box
@@ -161,9 +163,9 @@ class VideoCamera(object):
         frame_flip = imgd
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - tickmark)
         cv2.putText(frame_flip, f"FPS: {round(fps, 1)}", (0, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 0)
-        cv2.putText(frame_flip, f"Drowsiness: {self.sleeping_counter}", (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 0)
+        cv2.putText(frame_flip, f"Drowsiness: {self.sleeping_counter}", (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+                    (255, 0, 0), 0)
         cv2.rectangle(frame_flip, (0, 0), (img.shape[1], img.shape[0]), (0, 0, 255), self.sleeping_counter)
-        
 
         ret, jpeg = cv2.imencode('.jpg', frame_flip)
         # print("step 8:" + str(time.time() - start8))
