@@ -7,4 +7,5 @@ urlpatterns = [
     path('video_feed', views.video_feed, name='video_feed'),
     path('image', views.image, name='image'),
     path('video', views.video, name='video'),
+    path('socket', views.socket, name='socket'),
     ]

@@ -32,6 +32,9 @@ def index(request):
 def video(request):
     return render(request, 'webcam/video.html')
 
+def socket(request):
+    return render(request, 'webcam/socket.html')
+
 
 def image(request):
     raw_image = None
