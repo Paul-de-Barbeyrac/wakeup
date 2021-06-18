@@ -11,6 +11,8 @@ scikit-image = "*"
 numpy= "*"
 tensorflow="*"
 dlib = "*"
+whitenoise = "*"
+channels = "*"
 
 [dev-packages]
 
