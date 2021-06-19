@@ -6,14 +6,15 @@
 <div id="container">
     <canvas id="canvasOutput"></canvas>
     <video autoplay="true" id="videoElement"></video>
+    <canvas id="canvasOutputOcv"></canvas>
 </div>
-
-<div class='video'>
+{#<img id="toto" src="https://d1fmx1rbmqrxrr.cloudfront.net/cnet/optim/i/edit/2019/04/eso1644bsmall__w770.jpg" alt="">#}
+{#<div class='video'>#}
     <img id="image">
 </div>
-<div class='video2'>
-    <img id="image2">
-</div>
+{#<div class='video2'>#}
+{#    <img id="image2">#}
+{#</div>#}
 {% load static %}
 <script src="{% static '/opencv.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"
@@ -23,7 +24,9 @@
     function ws_connect() {
         // create new connection to the ws server
         socket = new WebSocket("ws://" + window.location.host + "/ws/image");
+
         socket.onopen = function () {
+            console.log(window.location.host)
             console.log("Connected...!", socket.connected)
         };
         socket.onmessage = function (image) {
@@ -44,9 +47,10 @@
 
 
     const video = document.querySelector("#videoElement");
-    video.width = 500;
-    video.height = 375;
-    ;
+    const canvas = document.querySelector("#canvasOutput")
+
+    video.width = 720;
+    video.height = 480;
 
     if (navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({video: true})
@@ -65,17 +69,17 @@
     let cap = new cv.VideoCapture(video);
 
     const FPS = 22;
-
     setInterval(() => {
         cap.read(src);
-
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        let context = canvas.getContext('2d')
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
         var type = "image/png"
-        const image_id2 = document.getElementById('image2');
-        image_id2.src = document.getElementById("canvasOutput").toDataURL;
-        var data = document.getElementById("canvasOutput").toDataURL(type);
+        {#const image_id2 = document.getElementById('image2');#}
+        data = document.getElementById("canvasOutput").toDataURL(type);
         data = data.replace('data:' + type + ';base64,', '');
-
-        console.log(data);
+        {#console.log(data);#}
         socket.send(data);
     }, 10000 / FPS);
 
