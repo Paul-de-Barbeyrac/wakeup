@@ -26,7 +26,7 @@ def readb64(base64_string):
 
 
 def index(request):
-    return render(request, 'webcam/home.html')
+    return render(request, 'webcam/image.html')
 
 
 def video(request):

@@ -1,19 +1,29 @@
 <html>
 <head>
     <title>Image module</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-<h1>Image module</h1>
-<form action="{% url 'image' %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <p>
-        <input id="file" type="file" class="" name="file">
-    </p>
-    <input type="submit" value="Submit"/>
-</form>
-<p>Raw image</p>
-<img id="raw_image" style="max-width: 100%; width: auto;" alt="" src="{{ raw_image }}"/>
-<p>Processed image</p>
-<img id="processed_image" style="max-width: 100%; width: auto;" alt="" src="{{ processed_image }}"/>
+<body class="bg-blue-500">
+<h1 class="pt-5 pb-5 text-center text-5xl text-white font-bold">Wakeup</h1>
+<div class="flex justify-center mb-5">
+    <a class="px-3 text-white text-2xl font-bold" href={% url 'image' %}>Image</a>
+    <a class="px-3 text-white text-2xl font-bold" href={% url 'video' %}>Video</a>
+</div>
+<div class="my-5 flex justify-center">
+    <form action="{% url 'image' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <input id="file" type="file" class="" name="file">
+            <input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" type="submit" value="Submit"/>
+        </div>
+    </form>
+</div>
+<div class="flex justify-center">
+    <div class="mx-2"><p class="text-white text-2xl font-bold">Raw image</p>
+        <img class="flex justify-center" id="raw_image" alt="" src="{{ raw_image }}"/></div>
+    <div class="mx-2"><p class="text-white text-2xl font-bold">Processed image</p>
+        <img class="flex justify-center" id="processed_image" alt="" src="{{ processed_image }}"/></div>
+</div>
+
 </body>
 </html>

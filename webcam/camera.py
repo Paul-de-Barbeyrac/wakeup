@@ -156,7 +156,7 @@ class VideoCamera(object):
                 if self.sleeping_counter > 0:
                     self.sleeping_counter = self.sleeping_counter - 1
             elif round((proba_left + proba_right) / 2) == 0:
-                self.sleeping_counter = self.sleeping_counter +2
+                self.sleeping_counter = self.sleeping_counter +1
 
             for i in bb:
                 cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 0)  # Bounding box
