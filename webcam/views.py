@@ -102,7 +102,10 @@ def image(request):
             extract_eye_left = np.expand_dims(extract_eye_left, axis=0)
             pred = model_deep.predict(extract_eye_left)
             proba = pred[0][0]
-            color = (0, 255 * proba, 255 * (1 - proba))
+            if proba > 0.1:
+                color = (0, 255, 0)
+            else:
+                color = (0, 0, 255)
             # print(round(proba, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
 
@@ -111,7 +114,7 @@ def image(request):
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.75
             thickness = 1
-            cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
+            # cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
         for eye in right_eyes:
             width = max(eye, key=lambda x: x[0])[0] - min(eye, key=lambda x: x[0])[0]
@@ -132,7 +135,10 @@ def image(request):
             extract_eye_right = np.expand_dims(extract_eye_right, axis=0)
             pred = model_deep.predict(extract_eye_right)
             proba = pred[0][0]
-            color = (0, 255 * proba, 255 * (1 - proba))
+            if proba > 0.1:
+                color = (0, 255, 0)
+            else:
+                color = (0, 0, 255)
             # print(round(proba, 4))
             cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 3)
 
@@ -141,7 +147,7 @@ def image(request):
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.45
             thickness = 1
-            cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
+            # cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
         for i in bb:
             cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 5)  # Bounding box
