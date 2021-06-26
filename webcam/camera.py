@@ -94,32 +94,35 @@ class VideoCamera(object):
 
                 # Plot center of eye
                 # cv2.circle(imgd, (center_x, center_y), 2, (0, 255, 0), -1)
-                extract_eye_left = imgd[center_y - width:center_y + width, center_x - width:center_x + width]
-                extract_eye_left = cv2.cvtColor(extract_eye_left, cv2.COLOR_BGR2GRAY)
-                extract_eye_left = cv2.resize(extract_eye_left, (28, 28))
+                if (center_y - width) > 0 and (center_y + width) < image.shape[0] and (center_x - width) > 0 and (
+                        center_x + width) < image.shape[1]:
+                    extract_eye_left = imgd[center_y - width:center_y + width, center_x - width:center_x + width]
+                    extract_eye_left = cv2.cvtColor(extract_eye_left, cv2.COLOR_BGR2GRAY)
+                    extract_eye_left = cv2.resize(extract_eye_left, (28, 28))
 
-                # Save image
-                # cv2.imwrite(f"left2-eye-{center_x}-{center_y}.jpg", extract_eye_left)
+                    # Save image
+                    # cv2.imwrite(f"left2-eye-{center_x}-{center_y}.jpg", extract_eye_left)
 
-                extract_eye_left = extract_eye_left / 255
-                extract_eye_left = extract_eye_left.reshape(28, 28, -1)
-                extract_eye_left = np.expand_dims(extract_eye_left, axis=0)
-                pred = model_deep.predict(extract_eye_left)
-                proba_left = pred[0][0]
-                if proba_left > 0.9:
-                    color = (0, 255, 0)
-                else:
-                    color = (0, 0, 255)
-                # print(round(proba, 4))
-                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color,
-                              0)
+                    extract_eye_left = extract_eye_left / 255
+                    extract_eye_left = extract_eye_left.reshape(28, 28, -1)
+                    extract_eye_left = np.expand_dims(extract_eye_left, axis=0)
+                    pred = model_deep.predict(extract_eye_left)
+                    proba_left = pred[0][0]
+                    if proba_left > 0.9:
+                        color = (0, 255, 0)
+                    else:
+                        color = (0, 0, 255)
+                    # print(round(proba, 4))
+                    cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width),
+                                  color,
+                                  0)
 
-                text_to_display = f"{round(float(proba_left), 2)}"
-                coordinates = (center_x - width, center_y - width - 5)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 0.25
-                thickness = 0
-                cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
+                    text_to_display = f"{round(float(proba_left), 2)}"
+                    coordinates = (center_x - width, center_y - width - 5)
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.25
+                    thickness = 0
+                    cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
             for eye in right_eyes:
                 width = max(eye, key=lambda x: x[0])[0] - min(eye, key=lambda x: x[0])[0]
@@ -128,32 +131,35 @@ class VideoCamera(object):
 
                 # Plot center of eye
                 # cv2.circle(imgd, (center_x, center_y), 2, (0, 255, 0), -1)
-                extract_eye_right = imgd[center_y - width:center_y + width, center_x - width:center_x + width]
-                extract_eye_right = cv2.cvtColor(extract_eye_right, cv2.COLOR_BGR2GRAY)
-                extract_eye_right = cv2.resize(extract_eye_right, (28, 28))
+                if (center_y - width) > 0 and (center_y + width) < image.shape[0] and (center_x - width) > 0 and (
+                        center_x + width) < image.shape[1]:
+                    extract_eye_right = imgd[center_y - width:center_y + width, center_x - width:center_x + width]
+                    extract_eye_right = cv2.cvtColor(extract_eye_right, cv2.COLOR_BGR2GRAY)
+                    extract_eye_right = cv2.resize(extract_eye_right, (28, 28))
 
-                # Save image
-                # cv2.imwrite(f"right-eye-{center_x}-{center_y}.jpg", extract_eye_right)
+                    # Save image
+                    # cv2.imwrite(f"right-eye-{center_x}-{center_y}.jpg", extract_eye_right)
 
-                extract_eye_right = extract_eye_right / 255
-                extract_eye_right = extract_eye_right.reshape(28, 28, -1)
-                extract_eye_right = np.expand_dims(extract_eye_right, axis=0)
-                pred = model_deep.predict(extract_eye_right)
-                proba_right = pred[0][0]
-                if proba_right > 0.9:
-                    color = (0, 255, 0)
-                else:
-                    color = (0, 0, 255)
-                # print(round(proba_right, 4))
-                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color,
-                              0)
+                    extract_eye_right = extract_eye_right / 255
+                    extract_eye_right = extract_eye_right.reshape(28, 28, -1)
+                    extract_eye_right = np.expand_dims(extract_eye_right, axis=0)
+                    pred = model_deep.predict(extract_eye_right)
+                    proba_right = pred[0][0]
+                    if proba_right > 0.9:
+                        color = (0, 255, 0)
+                    else:
+                        color = (0, 0, 255)
+                    # print(round(proba_right, 4))
+                    cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width),
+                                  color,
+                                  0)
 
-                text_to_display = f"{round(float(proba_right), 2)}"
-                coordinates = (center_x - width, center_y - width - 5)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 0.25
-                thickness = 0
-                cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
+                    text_to_display = f"{round(float(proba_right), 2)}"
+                    coordinates = (center_x - width, center_y - width - 5)
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.25
+                    thickness = 0
+                    cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
             if faces:
                 if round((proba_left + proba_right) / 2) == 1:
