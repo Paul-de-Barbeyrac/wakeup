@@ -69,6 +69,7 @@ class VideoCamera(object):
             # print("step 7:" + str(time.time() - start7))
 
             start8 = time.time()
+
             # Bounding box and eyes
             bb = [i.rect for i in faces]
             bb = [((i.left(), i.top()),
@@ -110,7 +111,8 @@ class VideoCamera(object):
                 else:
                     color = (0, 0, 255)
                 # print(round(proba, 4))
-                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
+                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color,
+                              0)
 
                 text_to_display = f"{round(float(proba_left), 2)}"
                 coordinates = (center_x - width, center_y - width - 5)
@@ -143,7 +145,8 @@ class VideoCamera(object):
                 else:
                     color = (0, 0, 255)
                 # print(round(proba_right, 4))
-                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color, 0)
+                cv2.rectangle(imgd, (center_x - width, center_y - width), (center_x + width, center_y + width), color,
+                              0)
 
                 text_to_display = f"{round(float(proba_right), 2)}"
                 coordinates = (center_x - width, center_y - width - 5)
@@ -152,11 +155,12 @@ class VideoCamera(object):
                 thickness = 0
                 cv2.putText(imgd, text_to_display, coordinates, font, font_scale, color, thickness)
 
-            if round((proba_left + proba_right) / 2) == 1:
-                if self.sleeping_counter > 0:
-                    self.sleeping_counter = self.sleeping_counter - 1
-            elif round((proba_left + proba_right) / 2) == 0:
-                self.sleeping_counter = self.sleeping_counter +1
+            if faces:
+                if round((proba_left + proba_right) / 2) == 1:
+                    if self.sleeping_counter > 0:
+                        self.sleeping_counter = self.sleeping_counter - 1
+                elif round((proba_left + proba_right) / 2) == 0:
+                    self.sleeping_counter = self.sleeping_counter + 2
 
             for i in bb:
                 cv2.rectangle(imgd, i[0], i[1], (255, 0, 0), 0)  # Bounding box
